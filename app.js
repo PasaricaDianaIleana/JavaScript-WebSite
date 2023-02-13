@@ -95,10 +95,92 @@ const questions = [
     }
 ]
 
-const handleClick = () => {
-    console.log('clicked')
-}
+const answers = [
+    {
+        combination: ["New York", "Pizza", "Traditional"],
+        text: "Blue Cheese",
+        image: "https://images.unsplash.com/photo-1452195100486-9cc805987862?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjczMTc0fQ&w=400&h=400&fit=fillmax",
+        alt: "Blue cheese"
+    },
+    {
+        combination: ["Austin", "Pasta", "Modern"],
+        text: "Cheddar",
+        image: "https://images.unsplash.com/photo-1618164435735-413d3b066c9a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+        alt: "Cheddar cheese"
+    },
+    {
+        combination: ["Portland", "Sandwich", "Mountains"],
+        text: "Feta",
+        image: "https://images.unsplash.com/photo-1626957341926-98752fc2ba90?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+        alt: "Feta cheese"
+    },
+    {
+        combination: ["New Orleans", "Hamburger", "House"],
+        text: "Halloumi",
+        image: "https://images.unsplash.com/photo-1505281036624-fac2862357b8?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1469&q=80",
+        alt: "Halloumi"
+    }
+]
+const unansweredQuestions = [];
+const chosenAnswers = [];
+const handleClick = (questionId, chosenAnswer) => {
+    // console.log(questionId, chosenAnswer)
+    if (unansweredQuestions.includes(questionId))
+        chosenAnswers.push(chosenAnswer);
+    const itemToRemove = unansweredQuestions.indexOf(questionId);
 
+    if (itemToRemove > -1) {
+        unansweredQuestions.splice(itemToRemove, 1);
+    }
+
+
+    disablesQuestionBlock(questionId, chosenAnswer);
+    //scroll to top most unanswered question
+    const lowestQuestionId = Math.min(...unansweredQuestions)
+    location.href = '#' + lowestQuestionId;
+
+    if (!unansweredQuestions.length) {
+        //scroll to answer div
+        showAnswer();
+    }
+}
+disablesQuestionBlock = (questionId, chosenAnswer) => {
+    const currentQuestionBlock = document.getElementById(questionId + "-questions");
+
+    Array.from(currentQuestionBlock.children).forEach(block => {
+        if (block.children.item(1).innerHTML != chosenAnswer) {
+            block.getElementsByClassName.opacity = "50%"
+        }
+    })
+}
+const showAnswer = () => {
+    let result;
+    answers.forEach(answer => {
+        if (chosenAnswers.includes(answer.combination[0]) +
+            chosenAnswers.includes(answer.combination[1]) +
+            chosenAnswers.includes(answer.combination[2])) {
+            result = answer;
+            return;
+        } else if (!result) {
+            //first answer object is default
+            result = answers[0]
+        }
+    })
+    const answerBlock = document.createElement('div');
+    answerBlock.classList.add('result-block');
+    const answerTitle = document.createElement('h3');
+    answerTitle.textContent = result.text;
+    const answerImage = document.createElement('img');
+    answerImage.setAttribute('src', result.image)
+    answerImage.setAttribute('alt', result.alt)
+
+    answerBlock.append(answerTitle, answerImage)
+    answerDisplay.append(answerBlock)
+
+
+    const allAnswearBlocks = document.querySelectorAll('.answer-block');
+    Array.from(allAnswearBlocks).forEach(answerBlock => answerBlock.replaceWith(answerBlock.cloneNode(true)))
+}
 const populateQuestions = () => {
 
     questions.forEach(question => {
@@ -114,11 +196,13 @@ const populateQuestions = () => {
         answersBlock.id = question.id + "-questions"
         answersBlock.classList.add('answer-options')
 
+        unansweredQuestions.push(question.id);
+
         question.answers.forEach(answer => {
             const answerBlock = document.createElement('div');
             answerBlock.classList.add('answer-block');
 
-            answerBlock.addEventListener('click', handleClick)
+            answerBlock.addEventListener('click', () => handleClick(question.id, answer.text))
 
             const answerImage = document.createElement('img');
 
@@ -126,9 +210,20 @@ const populateQuestions = () => {
             answerImage.setAttribute('alt', answer.alt);
 
             const answerTitle = document.createElement('h3')
+            answerTitle.textContent = answer.text;
 
+            const answerInfo = document.createElement('p');
+            const imageLink = document.createElement('a');
+            imageLink.setAttribute('href', answer.credit);
+            imageLink.textContent = answer.credit;
+            const sourceLink = document.createElement('a');
+            sourceLink.textContent = 'Unsplash';
 
-            answerBlock.append(answerImage);
+            sourceLink.setAttribute('src', 'https://www.unsplash.com')
+            answerInfo.append(imageLink, ' to ', sourceLink);
+            answerBlock.append(answerImage, answerTitle, answerInfo);
+            answersBlock.append(answerBlock)
+
         })
         questionDisplay.append(answersBlock);
 
